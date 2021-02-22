@@ -29,13 +29,16 @@ type ApusicControlPlaneSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	// Foo is an example field of ApusicControlPlane. Edit ApusicControlPlane_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	Replicas        int32   `json:"replicas,omitempty"`
+	StorgeClassName *string `json:"storgeClassName,omitempty"`
 }
 
 // ApusicControlPlaneStatus defines the observed state of ApusicControlPlane
 type ApusicControlPlaneStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	ReadyNodes *[]string
+	Leader     string
 }
 
 // +kubebuilder:object:root=true

@@ -23,22 +23,33 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
+type SessionCache struct {
+	Type string `json:"type"`
+	Size int32  `json:"size,omitempty"`
+}
+type CacheStatus struct {
+	SessionCache SessionCache `json:"sessionCache,omitempty"`
+}
+
 // ApusicAsSpec defines the desired state of ApusicAs
 type ApusicAsSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-
-	// Foo is an example field of ApusicAs. Edit ApusicAs_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	Name         string       `json:"name,omitempty"`
+	Replicas     int32        `json:"replicas,omitempty"`
+	SessionCache SessionCache `json:"sessionCache,omitempty"`
 }
 
 // ApusicAsStatus defines the observed state of ApusicAs
 type ApusicAsStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	Nodes       []string    `json:"nodes,omitempty"`
+	CacheStatus CacheStatus `json:"cacheStatus,omitempty"`
 }
 
 // +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
 
 // ApusicAs is the Schema for the apusicas API
 type ApusicAs struct {

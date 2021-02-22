@@ -18,6 +18,8 @@ package controllers
 
 import (
 	"context"
+	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -25,6 +27,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	webserverv1 "github.com/jstage/apusic-aas-operator/api/v1"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+
+	res "github.com/jstage/apusic-aas-operator/pkg/resources"
 )
 
 // ApusicControlPlaneReconciler reconciles a ApusicControlPlane object
@@ -38,16 +44,59 @@ type ApusicControlPlaneReconciler struct {
 // +kubebuilder:rbac:groups=webserver.apusic.com,resources=apusiccontrolplanes/status,verbs=get;update;patch
 
 func (r *ApusicControlPlaneReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	_ = context.Background()
-	_ = r.Log.WithValues("apusiccontrolplane", req.NamespacedName)
+	ctx := context.Background()
+	log := r.Log.WithValues("apusiccontrolplane", req.NamespacedName)
 
 	// your logic here
 
+	apusicControlPlane := &webserverv1.ApusicControlPlane{}
+
+	err := r.Get(ctx, req.NamespacedName, apusicControlPlane)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			// Request object not found, could have been deleted after reconcile request.
+			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
+			// Return and don't requeue
+			log.Info("ApusicControlPlane resource not found. Ignoring since object must be deleted")
+			return ctrl.Result{}, nil
+		}
+		// Error reading the object - requeue the request.
+		log.Error(err, "Failed to get ApusicControlPlane Instance")
+		return ctrl.Result{}, err
+	}
+
+	acp := &res.Acp{
+		ApusicControlPlane: apusicControlPlane,
+	}
+	foundStateful := &appsv1.StatefulSet{}
+
+	err = r.Get(ctx, types.NamespacedName{Name: apusicControlPlane.Name, Namespace: apusicControlPlane.Namespace}, foundStateful)
+
+	if err != nil && errors.IsNotFound(err) {
+		consulHeadless := acp.Service()
+		consulStateful := acp.StatusfulSet(consulHeadless.Name)
+		err = r.Create(ctx, consulHeadless)
+		if err != nil {
+			log.Error(err, "Failed to create new consul HeadlessService", "HeadlessService.Namespace", consulHeadless.Namespace, "HeadlessService.Name", consulHeadless.Name)
+			return ctrl.Result{}, err
+		}
+		err = r.Create(ctx, consulStateful)
+		if err != nil {
+			log.Error(err, "Failed to create new consul StatefulSet", "StatefulSet.Namespace", consulStateful.Namespace, "StatefulSet.Name", consulStateful.Name)
+			return ctrl.Result{}, err
+		}
+		return ctrl.Result{Requeue: true}, nil
+	} else if err != nil {
+		log.Error(err, "Failed to get consul instance")
+		return ctrl.Result{}, err
+	}
 	return ctrl.Result{}, nil
 }
 
 func (r *ApusicControlPlaneReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&webserverv1.ApusicControlPlane{}).
+		Owns(&appsv1.StatefulSet{}).
+		Owns(&corev1.Service{}).
 		Complete(r)
 }
