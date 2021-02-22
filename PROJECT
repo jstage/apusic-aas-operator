@@ -1,0 +1,10 @@
+domain: apusic.com
+repo: github.com/jstage/apusic-aas-operator
+resources:
+- group: webserver
+  kind: ApusicAs
+  version: v1
+- group: webserver
+  kind: ApusicControlPlane
+  version: v1
+version: "2"

@@ -1,0 +1,20 @@
+# permissions for end users to view apusiccontrolplanes.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: apusiccontrolplane-viewer-role
+rules:
+- apiGroups:
+  - webserver.apusic.com
+  resources:
+  - apusiccontrolplanes
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - webserver.apusic.com
+  resources:
+  - apusiccontrolplanes/status
+  verbs:
+  - get

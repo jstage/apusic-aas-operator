@@ -1,0 +1,7 @@
+apiVersion: webserver.apusic.com/v1
+kind: ApusicControlPlane
+metadata:
+  name: apusiccontrolplane-sample
+spec:
+  # Add fields here
+  foo: bar

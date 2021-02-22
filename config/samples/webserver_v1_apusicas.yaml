@@ -1,0 +1,7 @@
+apiVersion: webserver.apusic.com/v1
+kind: ApusicAs
+metadata:
+  name: apusicas-sample
+spec:
+  # Add fields here
+  foo: bar

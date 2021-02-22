@@ -1,0 +1,20 @@
+# permissions for end users to view apusicas.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: apusicas-viewer-role
+rules:
+- apiGroups:
+  - webserver.apusic.com
+  resources:
+  - apusicas
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - webserver.apusic.com
+  resources:
+  - apusicas/status
+  verbs:
+  - get
