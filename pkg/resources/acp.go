@@ -330,7 +330,7 @@ func (acp *Acp) StatusfulSet(svcName string) (desired *appsv1.StatefulSet) {
 	retryJoins := make([]string, int(*replicas))
 	var i int32
 	for i = 0; i < *replicas; i++ {
-		retryJoins[i] = fmt.Sprintf("%s-%d", statefulName, i)
+		retryJoins[i] = fmt.Sprintf("-retry-join %s-%d", statefulName, i)
 	}
 	args := []string{"agent",
 		"-advertise=$(POD_IP)",
@@ -418,7 +418,7 @@ func (acp *Acp) StatusfulSet(svcName string) (desired *appsv1.StatefulSet) {
 							corev1.ReadWriteOnce,
 						},
 						StorageClassName: acp.ApusicControlPlane.Spec.StorgeClassName,
-						Resources:        acp.ApusicControlPlane.Spec.Resouces,
+						Resources:        acp.ApusicControlPlane.Spec.Resources,
 					},
 				},
 			},
