@@ -327,7 +327,7 @@ func (acp *Acp) StatusfulSet(svcName string) (desired *appsv1.StatefulSet) {
 	label := labelsForApusicControlPlane(acp.ApusicControlPlane.Name)
 	replicas := &acp.ApusicControlPlane.Spec.Replicas
 	statefulName := acp.ApusicControlPlane.Name + "-stateful"
-	retryJoins := []string{}
+	retryJoins := make([]string, int(*replicas))
 	var i int32
 	for i = 0; i < *replicas; i++ {
 		retryJoins[i] = fmt.Sprintf("%s-%d", statefulName, i)
