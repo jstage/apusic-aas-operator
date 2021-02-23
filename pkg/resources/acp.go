@@ -422,7 +422,7 @@ func (acp *Acp) StatusfulSet(svcName string) (desired *appsv1.StatefulSet) {
 						AccessModes: []corev1.PersistentVolumeAccessMode{
 							corev1.ReadWriteOnce,
 						},
-						StorageClassName: acp.ApusicControlPlane.Spec.StorgeClassName,
+						StorageClassName: acp.ApusicControlPlane.Spec.StorageClassName,
 						Resources:        acp.ApusicControlPlane.Spec.Resources,
 					},
 				},
