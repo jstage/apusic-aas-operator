@@ -330,7 +330,7 @@ func (acp *Acp) StatusfulSet(svcName string) (desired *appsv1.StatefulSet) {
 	retryJoins := make([]string, int(*replicas))
 	var i int32
 	for i = 0; i < *replicas; i++ {
-		retryJoins[i] = fmt.Sprintf("-retry-join %s-%d", statefulName, i)
+		retryJoins[i] = fmt.Sprintf("-retry-join=%s-%d.%s.$(NAMESPACE).svc.cluster.local", statefulName, i, svcName)
 	}
 	args := []string{"agent",
 		"-advertise=$(POD_IP)",
