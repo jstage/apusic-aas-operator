@@ -17,6 +17,7 @@ limitations under the License.
 package v1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -29,8 +30,9 @@ type ApusicControlPlaneSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	// Foo is an example field of ApusicControlPlane. Edit ApusicControlPlane_types.go to remove/update
-	Replicas        int32   `json:"replicas,omitempty"`
-	StorgeClassName *string `json:"storgeClassName,omitempty"`
+	Replicas        int32                       `json:"replicas,omitempty"`
+	StorgeClassName *string                     `json:"storgeClassName,omitempty"`
+	Resouces        corev1.ResourceRequirements `json:"resouces,omitempty"`
 }
 
 // ApusicControlPlaneStatus defines the observed state of ApusicControlPlane

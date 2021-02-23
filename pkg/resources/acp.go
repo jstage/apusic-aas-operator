@@ -418,6 +418,7 @@ func (acp *Acp) StatusfulSet(svcName string) (desired *appsv1.StatefulSet) {
 							corev1.ReadWriteOnce,
 						},
 						StorageClassName: acp.ApusicControlPlane.Spec.StorgeClassName,
+						Resources:        acp.ApusicControlPlane.Spec.Resouces,
 					},
 				},
 			},
