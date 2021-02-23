@@ -44,6 +44,7 @@ type ApusicControlPlaneStatus struct {
 }
 
 // +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
 
 // ApusicControlPlane is the Schema for the apusiccontrolplanes API
 type ApusicControlPlane struct {
