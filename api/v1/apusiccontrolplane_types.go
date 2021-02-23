@@ -30,9 +30,9 @@ type ApusicControlPlaneSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	// Foo is an example field of ApusicControlPlane. Edit ApusicControlPlane_types.go to remove/update
-	Replicas        int32                       `json:"replicas,omitempty"`
-	StorgeClassName *string                     `json:"storgeClassName,omitempty"`
-	Resources       corev1.ResourceRequirements `json:"resources,omitempty"`
+	Replicas         int32                       `json:"replicas,omitempty"`
+	StorageClassName *string                     `json:"storageClassName,omitempty"`
+	Resources        corev1.ResourceRequirements `json:"resources,omitempty"`
 }
 
 // ApusicControlPlaneStatus defines the observed state of ApusicControlPlane
