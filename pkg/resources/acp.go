@@ -385,18 +385,23 @@ func (acp *Acp) StatusfulSet(svcName string) (desired *appsv1.StatefulSet) {
 						Ports: []corev1.ContainerPort{{
 							ContainerPort: 8500,
 							Name:          "http",
+							HostPort:      8500,
 						}, {
 							ContainerPort: 8600,
 							Name:          "dns",
+							HostPort:      8600,
 						}, {
 							ContainerPort: 8300,
 							Name:          "rpc",
+							HostPort:      8300,
 						}, {
 							ContainerPort: 8302,
 							Name:          "wan",
+							HostPort:      8302,
 						}, {
-							ContainerPort: 8302,
-							Name:          "wan",
+							ContainerPort: 8301,
+							Name:          "lan",
+							HostPort:      8301,
 						},
 						},
 						VolumeMounts: []corev1.VolumeMount{
