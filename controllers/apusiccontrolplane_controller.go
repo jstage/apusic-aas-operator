@@ -43,7 +43,7 @@ type ApusicControlPlaneReconciler struct {
 // +kubebuilder:rbac:groups=webserver.apusic.com,resources=apusiccontrolplanes,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=webserver.apusic.com,resources=apusiccontrolplanes/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=core,resources=pods;services,verbs=get;list;watch;
+// +kubebuilder:rbac:groups=core,resources=pods;services,verbs=get;list;watch;create;update;patch;delete
 
 func (r *ApusicControlPlaneReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
