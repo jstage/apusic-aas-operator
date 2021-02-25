@@ -66,7 +66,6 @@ func (r *ApusicControlPlaneReconciler) Reconcile(req ctrl.Request) (ctrl.Result,
 		log.Error(err, "Failed to get ApusicControlPlane Instance")
 		return ctrl.Result{}, err
 	}
-
 	acp := &res.Acp{
 		ApusicControlPlane: apusicControlPlane,
 	}
@@ -80,13 +79,15 @@ func (r *ApusicControlPlaneReconciler) Reconcile(req ctrl.Request) (ctrl.Result,
 		err = r.Create(ctx, consulHeadless)
 		if err != nil {
 			log.Error(err, "Failed to create new consul HeadlessService", "HeadlessService.Namespace", consulHeadless.Namespace, "HeadlessService.Name", consulHeadless.Name)
-			return ctrl.Result{}, err
+			return ctrl.Result{}, client.IgnoreNotFound(err)
 		}
+		ctrl.SetControllerReference(apusicControlPlane, consulStateful, r.Scheme)
 		err = r.Create(ctx, consulStateful)
 		if err != nil {
 			log.Error(err, "Failed to create new consul StatefulSet", "StatefulSet.Namespace", consulStateful.Namespace, "StatefulSet.Name", consulStateful.Name)
-			return ctrl.Result{}, err
+			return ctrl.Result{}, client.IgnoreNotFound(err)
 		}
+		ctrl.SetControllerReference(apusicControlPlane, consulStateful, r.Scheme)
 		return ctrl.Result{Requeue: true}, nil
 	} else if err != nil {
 		log.Error(err, "Failed to get consul instance")
