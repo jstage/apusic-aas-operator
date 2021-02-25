@@ -6,6 +6,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 const (
@@ -323,8 +324,131 @@ type Acp struct {
 	ApusicControlPlane *v1.ApusicControlPlane
 }
 
+func (acp *Acp) UIPvc(pvcName string) *corev1.PersistentVolumeClaim {
+	pvc := &corev1.PersistentVolumeClaim{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: pvcName,
+		},
+		Spec: corev1.PersistentVolumeClaimSpec{
+			AccessModes: []corev1.PersistentVolumeAccessMode{
+				corev1.ReadWriteOnce,
+			},
+			Resources: acp.ApusicControlPlane.Spec.Resources,
+		},
+	}
+	return pvc
+}
+
+func (acp *Acp) UIService(deploySelector map[string]string) *corev1.Service {
+	svcName := acp.ApusicControlPlane.Name + "-uisvc"
+
+	svc := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      svcName,
+			Namespace: acp.ApusicControlPlane.Namespace,
+		},
+		Spec: corev1.ServiceSpec{
+			Selector: deploySelector,
+			Type:     acp.ApusicControlPlane.Spec.UiServiceType,
+			Ports: []corev1.ServicePort{
+				{
+					Port:       8500,
+					TargetPort: intstr.FromInt(8500),
+				},
+			},
+		},
+	}
+	return svc
+}
+
+func (acp *Acp) Deployment(svcName string) (deploy *appsv1.Deployment, selector map[string]string) {
+	selector = labelsForApusicControlPlane(acp.ApusicControlPlane.Name, "deploy")
+	deployName := acp.ApusicControlPlane.Name + "-uideploy"
+	replicas := &acp.ApusicControlPlane.Spec.Replicas
+	statefulName := acp.ApusicControlPlane.Name + "-stateful"
+	retryJoins := make([]string, int(*replicas))
+	for i := int32(0); i < *replicas; i++ {
+		retryJoins[i] = fmt.Sprintf("-retry-join=%s-%d.%s.$(NAMESPACE).svc.cluster.local", statefulName, i, svcName)
+	}
+	uiDeployRelicas := int32(1)
+	args := []string{"agent",
+		"-bind=0.0.0.0",
+		"-datacenter=dc1",
+		"-data-dir=/data",
+		"-disable-host-node-id=true",
+		"-domain=cluster.local",
+		"-client=0.0.0.0",
+		"-ui",
+	}
+	args = append(args, retryJoins...)
+	deploy = &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      deployName,
+			Namespace: acp.ApusicControlPlane.Namespace,
+		},
+		Spec: appsv1.DeploymentSpec{
+			Replicas: &uiDeployRelicas,
+			Selector: &metav1.LabelSelector{
+				MatchLabels: selector,
+			},
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: selector,
+				},
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{{
+						Name:            "apusic-consul",
+						Image:           defaultConsulImage,
+						ImagePullPolicy: defaultConsulImagePolicy,
+						Args:            args,
+						Ports: []corev1.ContainerPort{{
+							ContainerPort: 8500,
+							Name:          "http",
+							HostPort:      8500,
+						}, {
+							ContainerPort: 8600,
+							Name:          "dns",
+							HostPort:      8600,
+						}, {
+							ContainerPort: 8300,
+							Name:          "rpc",
+							HostPort:      8300,
+						}, {
+							ContainerPort: 8302,
+							Name:          "wan",
+							HostPort:      8302,
+						}, {
+							ContainerPort: 8301,
+							Name:          "lan",
+							HostPort:      8301,
+						},
+						},
+						VolumeMounts: []corev1.VolumeMount{
+							{
+								Name:      "consul-data",
+								MountPath: "/data",
+							},
+						},
+					}},
+					Volumes: []corev1.Volume{
+						{
+							Name: "consul-data",
+							VolumeSource: corev1.VolumeSource{
+								PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+									ClaimName: *acp.ApusicControlPlane.Spec.UiPvcName,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	return
+}
+
 func (acp *Acp) StatusfulSet(svcName string) (desired *appsv1.StatefulSet) {
-	label := labelsForApusicControlPlane(acp.ApusicControlPlane.Name)
+	label := labelsForApusicControlPlane(acp.ApusicControlPlane.Name, "statusfulset")
 	replicas := &acp.ApusicControlPlane.Spec.Replicas
 	statefulName := acp.ApusicControlPlane.Name + "-stateful"
 	retryJoins := make([]string, int(*replicas))
@@ -433,9 +557,9 @@ func (acp *Acp) StatusfulSet(svcName string) (desired *appsv1.StatefulSet) {
 	return
 }
 
-func (acp *Acp) Service() *corev1.Service {
+func (acp *Acp) HeadlessService() *corev1.Service {
 	svcName := acp.ApusicControlPlane.Name + "-svc"
-	label := labelsForApusicControlPlane(acp.ApusicControlPlane.Name)
+	label := labelsForApusicControlPlane(acp.ApusicControlPlane.Name, "service")
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      svcName,
@@ -456,6 +580,10 @@ func (acp *Acp) Service() *corev1.Service {
 	return svc
 }
 
-func labelsForApusicControlPlane(name string) map[string]string {
-	return map[string]string{"app": "apusiccontrolplane", "apusicas_cr": name}
+func labelsForApusicControlPlane(name, instance string) map[string]string {
+	return map[string]string{"app": "apusiccontrolplane", "apusicas_cr": name, "acp_instance": instance}
+}
+
+func pvcNameGen(crName, instanceName string) string {
+	return fmt.Sprintf("pvc-%s-%s", crName, instanceName)
 }

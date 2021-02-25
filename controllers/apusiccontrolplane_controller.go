@@ -73,8 +73,11 @@ func (r *ApusicControlPlaneReconciler) Reconcile(req ctrl.Request) (ctrl.Result,
 	err = r.Get(ctx, types.NamespacedName{Name: apusicControlPlane.Name, Namespace: apusicControlPlane.Namespace}, foundStateful)
 
 	if err != nil && errors.IsNotFound(err) {
-		consulHeadless := acp.Service()
+		consulHeadless := acp.HeadlessService()
 		consulStateful := acp.StatusfulSet(consulHeadless.Name)
+		uideploy, selector := acp.Deployment(consulHeadless.Name)
+		uisvc := acp.UIService(selector)
+		pvc := acp.UIPvc(*apusicControlPlane.Spec.UiPvcName)
 		err = r.Create(ctx, consulHeadless)
 		if err != nil {
 			log.Error(err, "Failed to create new consul HeadlessService", "HeadlessService.Namespace", consulHeadless.Namespace, "HeadlessService.Name", consulHeadless.Name)
@@ -87,6 +90,24 @@ func (r *ApusicControlPlaneReconciler) Reconcile(req ctrl.Request) (ctrl.Result,
 			return ctrl.Result{}, client.IgnoreNotFound(err)
 		}
 		ctrl.SetControllerReference(apusicControlPlane, consulStateful, r.Scheme)
+		err = r.Create(ctx, uideploy)
+		if err != nil {
+			log.Error(err, "Failed to create new consul ui deployment", "deployment.Namespace", uideploy.Namespace, "deployment.Name", uideploy.Name)
+			return ctrl.Result{}, client.IgnoreNotFound(err)
+		}
+		ctrl.SetControllerReference(apusicControlPlane, uideploy, r.Scheme)
+		err = r.Create(ctx, uisvc)
+		if err != nil {
+			log.Error(err, "Failed to create new consul ui service", "service.Namespace", uisvc.Namespace, "service.Name", uisvc.Name)
+			return ctrl.Result{}, client.IgnoreNotFound(err)
+		}
+		ctrl.SetControllerReference(apusicControlPlane, uisvc, r.Scheme)
+		err = r.Create(ctx, pvc)
+		if err != nil {
+			log.Error(err, "Failed to create new consul ui pvc", "pvc.Namespace", pvc.Namespace, "pvc.Name", pvc.Name)
+			return ctrl.Result{}, client.IgnoreNotFound(err)
+		}
+		ctrl.SetControllerReference(apusicControlPlane, pvc, r.Scheme)
 		return ctrl.Result{Requeue: true}, nil
 	} else if err != nil {
 		log.Error(err, "Failed to get consul instance")
