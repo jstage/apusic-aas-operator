@@ -75,9 +75,9 @@ func (r *ApusicControlPlaneReconciler) Reconcile(req ctrl.Request) (ctrl.Result,
 	if err != nil && errors.IsNotFound(err) {
 		consulHeadless := acp.HeadlessService()
 		consulStateful := acp.StatusfulSet(consulHeadless.Name)
-		uideploy, selector := acp.Deployment(consulHeadless.Name)
+		uideploy, pvcName, selector := acp.Deployment(consulHeadless.Name)
 		uisvc := acp.UIService(selector)
-		pvc := acp.UIPvc(*apusicControlPlane.Spec.UiPvcName)
+		pvc := acp.UIPvc(pvcName)
 		err = r.Create(ctx, consulHeadless)
 		if err != nil {
 			log.Error(err, "Failed to create new consul HeadlessService", "HeadlessService.Namespace", consulHeadless.Namespace, "HeadlessService.Name", consulHeadless.Name)

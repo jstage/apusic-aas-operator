@@ -333,7 +333,8 @@ func (acp *Acp) UIPvc(pvcName string) *corev1.PersistentVolumeClaim {
 			AccessModes: []corev1.PersistentVolumeAccessMode{
 				corev1.ReadWriteOnce,
 			},
-			Resources: acp.ApusicControlPlane.Spec.Resources,
+			Resources:        acp.ApusicControlPlane.Spec.Resources,
+			StorageClassName: acp.ApusicControlPlane.Spec.StorageClassName,
 		},
 	}
 	return pvc
@@ -361,7 +362,8 @@ func (acp *Acp) UIService(deploySelector map[string]string) *corev1.Service {
 	return svc
 }
 
-func (acp *Acp) Deployment(svcName string) (deploy *appsv1.Deployment, selector map[string]string) {
+func (acp *Acp) Deployment(svcName string) (deploy *appsv1.Deployment, pvcName string, selector map[string]string) {
+	pvcName = pvcNameGen("apc", "deploy")
 	selector = labelsForApusicControlPlane(acp.ApusicControlPlane.Name, "deploy")
 	deployName := acp.ApusicControlPlane.Name + "-uideploy"
 	replicas := &acp.ApusicControlPlane.Spec.Replicas
@@ -435,7 +437,7 @@ func (acp *Acp) Deployment(svcName string) (deploy *appsv1.Deployment, selector 
 							Name: "consul-data",
 							VolumeSource: corev1.VolumeSource{
 								PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
-									ClaimName: *acp.ApusicControlPlane.Spec.UiPvcName,
+									ClaimName: pvcName,
 								},
 							},
 						},

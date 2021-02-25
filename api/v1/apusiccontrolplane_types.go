@@ -33,7 +33,6 @@ type ApusicControlPlaneSpec struct {
 	Replicas         int32                       `json:"replicas,omitempty"`
 	StorageClassName *string                     `json:"storageClassName,omitempty"`
 	Resources        corev1.ResourceRequirements `json:"resources,omitempty"`
-	UiPvcName        *string                     `json:"uiPvcName,omitempty"`
 	UiServiceType    corev1.ServiceType          `json:"uiServiceType,omitempty"`
 }
 
