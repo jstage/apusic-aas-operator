@@ -52,7 +52,6 @@ func (r *ApusicControlPlaneReconciler) Reconcile(req ctrl.Request) (ctrl.Result,
 	// your logic here
 
 	apusicControlPlane := &webserverv1.ApusicControlPlane{}
-
 	err := r.Get(ctx, req.NamespacedName, apusicControlPlane)
 	if err != nil {
 		if errors.IsNotFound(err) {
@@ -81,7 +80,7 @@ func (r *ApusicControlPlaneReconciler) Reconcile(req ctrl.Request) (ctrl.Result,
 			log.Error(err, "Failed to create new consul HeadlessService", "HeadlessService.Namespace", consulHeadless.Namespace, "HeadlessService.Name", consulHeadless.Name)
 			return ctrl.Result{}, client.IgnoreNotFound(err)
 		}
-		ctrl.SetControllerReference(apusicControlPlane, consulStateful, r.Scheme)
+		ctrl.SetControllerReference(apusicControlPlane, consulHeadless, r.Scheme)
 		err = r.Create(ctx, consulStateful)
 		if err != nil {
 			log.Error(err, "Failed to create new consul StatefulSet", "StatefulSet.Namespace", consulStateful.Namespace, "StatefulSet.Name", consulStateful.Name)

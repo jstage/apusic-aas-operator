@@ -328,8 +328,7 @@ func (acp *Acp) StatusfulSet(svcName string) (desired *appsv1.StatefulSet) {
 	replicas := &acp.ApusicControlPlane.Spec.Replicas
 	statefulName := acp.ApusicControlPlane.Name + "-stateful"
 	retryJoins := make([]string, int(*replicas))
-	var i int32
-	for i = 0; i < *replicas; i++ {
+	for i := int32(0); i < *replicas; i++ {
 		retryJoins[i] = fmt.Sprintf("-retry-join=%s-%d.%s.$(NAMESPACE).svc.cluster.local", statefulName, i, svcName)
 	}
 	args := []string{"agent",
@@ -340,6 +339,7 @@ func (acp *Acp) StatusfulSet(svcName string) (desired *appsv1.StatefulSet) {
 		"-disable-host-node-id=true",
 		"-domain=cluster.local",
 		"-client=0.0.0.0",
+		fmt.Sprintf("-bootstrap-expect=%d", *replicas),
 		"-ui",
 	}
 	args = append(args, retryJoins...)
