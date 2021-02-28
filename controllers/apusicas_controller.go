@@ -174,6 +174,7 @@ func getPodNames(pods []corev1.Pod) []string {
 func labelsForApusicAs(name string) map[string]string {
 	return map[string]string{"app": "apusicas", "apusicas_cr": name}
 }
+
 func (r *ApusicAsReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&webserverv1.ApusicAs{}).

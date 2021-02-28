@@ -9,10 +9,20 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
+type ResTypeFunc func(ctrl string) string
+
+type ResName int
+
 const (
 	defaultConsulImage = "consul:v1.8.5"
 
 	defaultConsulImagePolicy = corev1.PullIfNotPresent
+
+	SVCNAME ResName = iota
+	STATEFULNAME
+	PVCNAME
+	DEPLOYNAME
+	HEADLESS
 
 	statefulsetTemplate = `
 	# StatefulSet to run the actual Consul server cluster.
@@ -322,6 +332,34 @@ const (
 
 type Acp struct {
 	ApusicControlPlane *v1.ApusicControlPlane
+	ResTypeFuncs       []ResTypeFunc
+}
+
+func NewAcp(ctrl *v1.ApusicControlPlane) *Acp {
+	temp := &Acp{
+		ApusicControlPlane: ctrl,
+	}
+	temp.inits()
+	return temp
+}
+
+func (acp *Acp) inits() {
+	acp.ResTypeFuncs = make([]ResTypeFunc, 5)
+	acp.ResTypeFuncs[SVCNAME] = func(ctrl string) string {
+		return ctrl + "-" + "svc"
+	}
+	acp.ResTypeFuncs[STATEFULNAME] = func(ctrl string) string {
+		return ctrl + "-" + "stateful"
+	}
+	acp.ResTypeFuncs[PVCNAME] = func(ctrl string) string {
+		return ctrl + "-" + "pvc"
+	}
+	acp.ResTypeFuncs[DEPLOYNAME] = func(ctrl string) string {
+		return ctrl + "-" + "deploy"
+	}
+	acp.ResTypeFuncs[HEADLESS] = func(ctrl string) string {
+		return ctrl + "-" + "headless"
+	}
 }
 
 func (acp *Acp) UIPvc(pvcName string) *corev1.PersistentVolumeClaim {
@@ -560,11 +598,11 @@ func (acp *Acp) StatusfulSet(svcName string) (desired *appsv1.StatefulSet) {
 }
 
 func (acp *Acp) HeadlessService() *corev1.Service {
-	svcName := acp.ApusicControlPlane.Name + "-svc"
+	svcNameFunc := acp.ResTypeFuncs[HEADLESS]
 	label := labelsForApusicControlPlane(acp.ApusicControlPlane.Name, "service")
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      svcName,
+			Name:      svcNameFunc(acp.ApusicControlPlane.Name),
 			Namespace: acp.ApusicControlPlane.Namespace,
 			Labels:    label,
 		},

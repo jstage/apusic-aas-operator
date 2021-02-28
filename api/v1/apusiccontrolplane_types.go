@@ -17,6 +17,7 @@ limitations under the License.
 package v1
 
 import (
+	"github.com/jstage/apusic-aas-operator/pkg/utils"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -63,6 +64,23 @@ type ApusicControlPlaneList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []ApusicControlPlane `json:"items"`
+}
+
+const ApusicControlPlaneFinalizerName = "apusicctrlplane.webserver.apusic.com"
+
+// HasFinalizer returns true if the item has the specified finalizer
+func (acp *ApusicControlPlane) HasFinalizer(finalizerName string) bool {
+	return utils.ContainString(acp.ObjectMeta.Finalizers, finalizerName)
+}
+
+// AddFinalizer adds the specified finalizer
+func (acp *ApusicControlPlane) AddFinalizer(finalizerName string) {
+	acp.ObjectMeta.Finalizers = append(acp.ObjectMeta.Finalizers, finalizerName)
+}
+
+// RemoveFinalizer removes the specified finalizer
+func (acp *ApusicControlPlane) RemoveFinalizer(finalizerName string) {
+	acp.ObjectMeta.Finalizers = utils.RemoveString(acp.ObjectMeta.Finalizers, finalizerName)
 }
 
 func init() {
