@@ -411,7 +411,7 @@ func (acp *Acp) Deployment(svcName string) (deploy *appsv1.Deployment, pvcName s
 	statefulName := statefulNameFunc(acp.ApusicControlPlane.Name)
 	retryJoins := make([]string, int(*replicas))
 	for i := int32(0); i < *replicas; i++ {
-		retryJoins[i] = fmt.Sprintf("-retry-join=%s-%d.%s.$(NAMESPACE).svc.cluster.local", statefulName, i, svcName)
+		retryJoins[i] = fmt.Sprintf("-retry-join=%s-%d.%s.$NAMESPACE.svc.cluster.local", statefulName, i, svcName)
 	}
 	uiDeployRelicas := int32(1)
 	args := []string{"agent",
@@ -515,7 +515,7 @@ func (acp *Acp) StatusfulSet(svcName string) (desired *appsv1.StatefulSet) {
 	statefulName := statefulNameFunc(acp.ApusicControlPlane.Name)
 	retryJoins := make([]string, int(*replicas))
 	for i := int32(0); i < *replicas; i++ {
-		retryJoins[i] = fmt.Sprintf("-retry-join=%s-%d.%s.$(NAMESPACE).svc.cluster.local", statefulName, i, svcName)
+		retryJoins[i] = fmt.Sprintf("-retry-join=%s-%d.%s.$NAMESPACE.svc.cluster.local", statefulName, i, svcName)
 	}
 	args := []string{"agent",
 		"-server",

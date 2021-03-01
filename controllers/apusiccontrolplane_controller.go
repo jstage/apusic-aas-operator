@@ -92,7 +92,7 @@ func (r *ApusicControlPlaneReconciler) Reconcile(req ctrl.Request) (ctrl.Result,
 		uisvc := acpCtrl.UIService(selector)
 		pvc := acpCtrl.UIPvc(pvcName)
 		err = r.Create(ctx, consulHeadless)
-		if err != nil {
+		if err != nil && !errors.IsAlreadyExists(err) {
 			log.Error(err, "Failed to create new consul HeadlessService", "HeadlessService.Namespace", consulHeadless.Namespace, "HeadlessService.Name", consulHeadless.Name)
 			return ctrl.Result{}, err
 		}
