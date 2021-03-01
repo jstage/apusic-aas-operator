@@ -4,4 +4,9 @@ metadata:
   name: apusiccontrolplane-sample
 spec:
   # Add fields here
-  foo: bar
+  replicas: 1
+  storageClassName: openebs-device
+  uiServiceType: NodePort
+  resources:
+    requests:
+      storage: 0.5Gi
