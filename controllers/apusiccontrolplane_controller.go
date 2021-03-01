@@ -144,7 +144,7 @@ func (r *ApusicControlPlaneReconciler) delete(ctx context.Context, acp *webserve
 	}
 	var uiSvc *corev1.Service
 	uiName := acpCtrl.ResTypeFuncs[res.SVCNAME]
-	err = r.Get(ctx, client.ObjectKey{Namespace: acp.Namespace, Name: uiName(acp.Name)}, headlessSvc)
+	err = r.Get(ctx, client.ObjectKey{Namespace: acp.Namespace, Name: uiName(acp.Name)}, uiSvc)
 	if err == nil {
 		if err := r.Delete(ctx, uiSvc); err != nil && !errors.IsNotFound(err) {
 			return err
@@ -154,7 +154,7 @@ func (r *ApusicControlPlaneReconciler) delete(ctx context.Context, acp *webserve
 	}
 	var stateful *appsv1.StatefulSet
 	statefulName := acpCtrl.ResTypeFuncs[res.STATEFULNAME]
-	err = r.Get(ctx, client.ObjectKey{Namespace: acp.Namespace, Name: statefulName(acp.Name)}, headlessSvc)
+	err = r.Get(ctx, client.ObjectKey{Namespace: acp.Namespace, Name: statefulName(acp.Name)}, stateful)
 	if err == nil {
 		if err := r.Delete(ctx, stateful); err != nil && !errors.IsNotFound(err) {
 			return err
@@ -164,7 +164,7 @@ func (r *ApusicControlPlaneReconciler) delete(ctx context.Context, acp *webserve
 	}
 	var deploy *appsv1.Deployment
 	deployName := acpCtrl.ResTypeFuncs[res.DEPLOYNAME]
-	err = r.Get(ctx, client.ObjectKey{Namespace: acp.Namespace, Name: deployName(acp.Name)}, headlessSvc)
+	err = r.Get(ctx, client.ObjectKey{Namespace: acp.Namespace, Name: deployName(acp.Name)}, deploy)
 	if err == nil {
 		if err := r.Delete(ctx, deploy); err != nil && !errors.IsNotFound(err) {
 			return err
@@ -174,7 +174,7 @@ func (r *ApusicControlPlaneReconciler) delete(ctx context.Context, acp *webserve
 	}
 	var pvc *corev1.PersistentVolumeClaim
 	pvcName := acpCtrl.ResTypeFuncs[res.PVCNAME]
-	err = r.Get(ctx, client.ObjectKey{Namespace: acp.Namespace, Name: pvcName(acp.Name)}, headlessSvc)
+	err = r.Get(ctx, client.ObjectKey{Namespace: acp.Namespace, Name: pvcName(acp.Name)}, pvc)
 	if err == nil {
 		if err := r.Delete(ctx, pvc); err != nil && !errors.IsNotFound(err) {
 			return err

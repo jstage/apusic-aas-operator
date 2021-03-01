@@ -14,15 +14,15 @@ type ResTypeFunc func(ctrl string) string
 type ResName int
 
 const (
-	defaultConsulImage = "consul:v1.8.5"
-
-	defaultConsulImagePolicy = corev1.PullIfNotPresent
-
 	SVCNAME ResName = iota
 	STATEFULNAME
 	PVCNAME
 	DEPLOYNAME
 	HEADLESS
+
+	defaultConsulImage = "consul:v1.8.5"
+
+	defaultConsulImagePolicy = corev1.PullIfNotPresent
 
 	statefulsetTemplate = `
 	# StatefulSet to run the actual Consul server cluster.
