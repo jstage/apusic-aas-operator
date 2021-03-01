@@ -53,9 +53,7 @@ func (r *ApusicControlPlaneReconciler) Reconcile(req ctrl.Request) (ctrl.Result,
 	// your logic here
 
 	apusicControlPlane := &webserverv1.ApusicControlPlane{}
-	acpCtrl := &res.Acp{
-		ApusicControlPlane: apusicControlPlane,
-	}
+	acpCtrl := res.NewAcp(apusicControlPlane)
 	err := r.Get(ctx, req.NamespacedName, apusicControlPlane)
 	if err != nil {
 		if errors.IsNotFound(err) {
