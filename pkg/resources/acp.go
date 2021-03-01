@@ -379,8 +379,8 @@ func (acp *Acp) UIPvc(pvcName string) *corev1.PersistentVolumeClaim {
 }
 
 func (acp *Acp) UIService(deploySelector map[string]string) *corev1.Service {
-	svcName := acp.ApusicControlPlane.Name + "-uisvc"
-
+	svcNameFunc := acp.ResTypeFuncs[SVCNAME]
+	svcName := svcNameFunc(acp.ApusicControlPlane.Name)
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      svcName,
@@ -401,11 +401,14 @@ func (acp *Acp) UIService(deploySelector map[string]string) *corev1.Service {
 }
 
 func (acp *Acp) Deployment(svcName string) (deploy *appsv1.Deployment, pvcName string, selector map[string]string) {
-	pvcName = pvcNameGen("apc", "deploy")
+	pvcNameFunc := acp.ResTypeFuncs[PVCNAME]
+	pvcName = pvcNameFunc(acp.ApusicControlPlane.Name)
 	selector = labelsForApusicControlPlane(acp.ApusicControlPlane.Name, "deploy")
-	deployName := acp.ApusicControlPlane.Name + "-uideploy"
+	deployNameFunc := acp.ResTypeFuncs[DEPLOYNAME]
+	deployName := deployNameFunc(acp.ApusicControlPlane.Name)
 	replicas := &acp.ApusicControlPlane.Spec.Replicas
-	statefulName := acp.ApusicControlPlane.Name + "-stateful"
+	statefulNameFunc := acp.ResTypeFuncs[STATEFULNAME]
+	statefulName := statefulNameFunc(acp.ApusicControlPlane.Name)
 	retryJoins := make([]string, int(*replicas))
 	for i := int32(0); i < *replicas; i++ {
 		retryJoins[i] = fmt.Sprintf("-retry-join=%s-%d.%s.$(NAMESPACE).svc.cluster.local", statefulName, i, svcName)
@@ -490,7 +493,8 @@ func (acp *Acp) Deployment(svcName string) (deploy *appsv1.Deployment, pvcName s
 func (acp *Acp) StatusfulSet(svcName string) (desired *appsv1.StatefulSet) {
 	label := labelsForApusicControlPlane(acp.ApusicControlPlane.Name, "statusfulset")
 	replicas := &acp.ApusicControlPlane.Spec.Replicas
-	statefulName := acp.ApusicControlPlane.Name + "-stateful"
+	statefulNameFunc := acp.ResTypeFuncs[STATEFULNAME]
+	statefulName := statefulNameFunc(acp.ApusicControlPlane.Name)
 	retryJoins := make([]string, int(*replicas))
 	for i := int32(0); i < *replicas; i++ {
 		retryJoins[i] = fmt.Sprintf("-retry-join=%s-%d.%s.$(NAMESPACE).svc.cluster.local", statefulName, i, svcName)
@@ -622,8 +626,4 @@ func (acp *Acp) HeadlessService() *corev1.Service {
 
 func labelsForApusicControlPlane(name, instance string) map[string]string {
 	return map[string]string{"app": "apusiccontrolplane", "apusicas_cr": name, "acp_instance": instance}
-}
-
-func pvcNameGen(crName, instanceName string) string {
-	return fmt.Sprintf("pvc-%s-%s", crName, instanceName)
 }
