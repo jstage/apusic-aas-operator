@@ -1,6 +1,7 @@
 package resources
 
 import (
+	appsv1 "k8s.io/api/apps/v1"
 	"testing"
 )
 
@@ -15,5 +16,10 @@ const (
 )
 
 func TestIota(t *testing.T) {
+	acp := NewAcp(nil)
 	t.Logf("%d,%d,%d,%d,%d,", SVCNAME, STATEFULNAME, PVCNAME, DEPLOYNAME, HEADLESS)
+	fun := acp.ResTypeFuncs[HEADLESS]
+	t.Logf("result %s", fun("aaa"))
+	var deploy *appsv1.Deployment
+	t.Log(deploy)
 }
