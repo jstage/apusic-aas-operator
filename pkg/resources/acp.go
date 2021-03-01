@@ -205,7 +205,7 @@ func (acp *Acp) Deployment(svcName string) (deploy *appsv1.Deployment, pvcName s
 }
 
 func (acp *Acp) StatusfulSet(svcName string) (desired *appsv1.StatefulSet) {
-	label := labelsForApusicControlPlane(acp.ApusicControlPlane.Name, "statusfulset")
+	label := labelsForHeadlss()
 	replicas := &acp.ApusicControlPlane.Spec.Replicas
 	statefulNameFunc := acp.ResTypeFuncs[STATEFULNAME]
 	statefulName := statefulNameFunc(acp.ApusicControlPlane.Name)
@@ -317,7 +317,7 @@ func (acp *Acp) StatusfulSet(svcName string) (desired *appsv1.StatefulSet) {
 
 func (acp *Acp) HeadlessService() *corev1.Service {
 	svcNameFunc := acp.ResTypeFuncs[HEADLESS]
-	label := labelsForApusicControlPlane(acp.ApusicControlPlane.Name, "service")
+	label := labelsForHeadlss()
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      svcNameFunc(acp.ApusicControlPlane.Name),
@@ -340,4 +340,8 @@ func (acp *Acp) HeadlessService() *corev1.Service {
 
 func labelsForApusicControlPlane(name, instance string) map[string]string {
 	return map[string]string{"app": "apusiccontrolplane", "apusicas_cr": name, "acp_instance": instance}
+}
+
+func labelsForHeadlss() map[string]string {
+	return map[string]string{"app": "apc-headless", "acp_instance": "headless"}
 }
