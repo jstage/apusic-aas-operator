@@ -98,31 +98,31 @@ func (r *ApusicControlPlaneReconciler) Reconcile(req ctrl.Request) (ctrl.Result,
 		}
 		ctrl.SetControllerReference(apusicControlPlane, consulHeadless, r.Scheme)
 		err = r.Create(ctx, consulStateful)
-		if err != nil {
+		if err != nil && !errors.IsAlreadyExists(err) {
 			log.Error(err, "Failed to create new consul StatefulSet", "StatefulSet.Namespace", consulStateful.Namespace, "StatefulSet.Name", consulStateful.Name)
 			return ctrl.Result{}, err
 		}
 		ctrl.SetControllerReference(apusicControlPlane, consulStateful, r.Scheme)
 		err = r.Create(ctx, uideploy)
-		if err != nil {
+		if err != nil && !errors.IsAlreadyExists(err) {
 			log.Error(err, "Failed to create new consul ui deployment", "deployment.Namespace", uideploy.Namespace, "deployment.Name", uideploy.Name)
 			return ctrl.Result{}, err
 		}
 		ctrl.SetControllerReference(apusicControlPlane, uideploy, r.Scheme)
 		err = r.Create(ctx, uisvc)
-		if err != nil {
+		if err != nil && !errors.IsAlreadyExists(err) {
 			log.Error(err, "Failed to create new consul ui service", "service.Namespace", uisvc.Namespace, "service.Name", uisvc.Name)
 			return ctrl.Result{}, err
 		}
 		ctrl.SetControllerReference(apusicControlPlane, uisvc, r.Scheme)
 		err = r.Create(ctx, pvc)
-		if err != nil {
+		if err != nil && !errors.IsAlreadyExists(err) {
 			log.Error(err, "Failed to create new consul ui pvc", "pvc.Namespace", pvc.Namespace, "pvc.Name", pvc.Name)
 			return ctrl.Result{}, err
 		}
 		ctrl.SetControllerReference(apusicControlPlane, pvc, r.Scheme)
 		return ctrl.Result{Requeue: true}, nil
-	} else if err != nil {
+	} else if err != nil && !errors.IsAlreadyExists(err) {
 		log.Error(err, "Failed to get consul instance")
 		return ctrl.Result{}, err
 	}

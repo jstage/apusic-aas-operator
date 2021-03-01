@@ -443,7 +443,25 @@ func (acp *Acp) Deployment(svcName string) (deploy *appsv1.Deployment, pvcName s
 						Name:            "apusic-consul",
 						Image:           defaultConsulImage,
 						ImagePullPolicy: defaultConsulImagePolicy,
-						Args:            args,
+						Env: []corev1.EnvVar{
+							{
+								Name: "POD_IP",
+								ValueFrom: &corev1.EnvVarSource{
+									FieldRef: &corev1.ObjectFieldSelector{
+										FieldPath: "status.podIP",
+									},
+								},
+							},
+							{
+								Name: "NAMESPACE",
+								ValueFrom: &corev1.EnvVarSource{
+									FieldRef: &corev1.ObjectFieldSelector{
+										FieldPath: "metadata.namespace",
+									},
+								},
+							},
+						},
+						Args: args,
 						Ports: []corev1.ContainerPort{{
 							ContainerPort: 8500,
 							Name:          "http",
