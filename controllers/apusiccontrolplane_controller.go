@@ -130,24 +130,31 @@ func (r *ApusicControlPlaneReconciler) Reconcile(req ctrl.Request) (ctrl.Result,
 }
 
 func (r *ApusicControlPlaneReconciler) delete(ctx context.Context, acp *webserverv1.ApusicControlPlane, acpCtrl *res.Acp) error {
+	fmt.Println("delete 1")
 	var headlessSvc *corev1.Service
 	headlessName := acpCtrl.ResTypeFuncs[res.HEADLESS]
 	err := r.Get(ctx, client.ObjectKey{Namespace: acp.Namespace, Name: headlessName(acp.Name)}, headlessSvc)
+	fmt.Println("delete 2")
 	if err == nil {
+		fmt.Println("delete 3")
 		if err := r.Delete(ctx, headlessSvc); err != nil && !errors.IsNotFound(err) {
 			return err
 		}
 	} else if !errors.IsNotFound(err) {
+		fmt.Println("delete 4")
 		return err
 	}
 	var uiSvc *corev1.Service
 	uiName := acpCtrl.ResTypeFuncs[res.SVCNAME]
 	err = r.Get(ctx, client.ObjectKey{Namespace: acp.Namespace, Name: uiName(acp.Name)}, uiSvc)
+	fmt.Println("delete 5")
 	if err == nil {
 		if err := r.Delete(ctx, uiSvc); err != nil && !errors.IsNotFound(err) {
+			fmt.Println("delete 6")
 			return err
 		}
 	} else if !errors.IsNotFound(err) {
+		fmt.Println("delete 7")
 		return err
 	}
 	var stateful *appsv1.StatefulSet
@@ -189,13 +196,17 @@ func (r *ApusicControlPlaneReconciler) addFinalizer(ctx context.Context, instanc
 }
 
 func (r *ApusicControlPlaneReconciler) handleFinalizer(ctx context.Context, instance *webserverv1.ApusicControlPlane, acpCtrl *res.Acp) error {
+	fmt.Println("line1")
 	if !instance.HasFinalizer(webserverv1.ApusicControlPlaneFinalizerName) {
 		return nil
 	}
+	fmt.Println("line2")
 	if err := r.delete(ctx, instance, acpCtrl); err != nil {
 		return err
 	}
+	fmt.Println("line3")
 	instance.RemoveFinalizer(webserverv1.ApusicControlPlaneFinalizerName)
+	fmt.Println("line4")
 	return r.Update(ctx, instance)
 }
 
