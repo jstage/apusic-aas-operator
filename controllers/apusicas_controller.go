@@ -231,7 +231,7 @@ func (r *ApusicAsReconciler) envars(ctx context.Context, aas *webserverv1.Apusic
 		Value: string(secert.Data["accessKeyID"]),
 	}, corev1.EnvVar{
 		Name:  "MINIO_SECERT",
-		Value: string(secert.Data["accessKeyID"]),
+		Value: string(secert.Data["secretAccessKey"]),
 	}, corev1.EnvVar{
 		Name:  "MINIO_BUCKET",
 		Value: bucket,
