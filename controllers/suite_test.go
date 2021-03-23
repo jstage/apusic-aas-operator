@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"path/filepath"
+	"strings"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
@@ -82,3 +83,18 @@ var _ = AfterSuite(func() {
 	err := testEnv.Stop()
 	Expect(err).ToNot(HaveOccurred())
 })
+
+func TestString(t *testing.T) {
+	str := "http://127.0.0.1:9000/yukiso/test/aas.war"
+	last := strings.LastIndex(str, "/")
+	first := strings.Index(str, "://")
+	object := str[last+1:]
+	realUrl := str[first+3:]
+
+	endpoint := realUrl[0:strings.Index(realUrl, "/")]
+
+	bucket := realUrl[strings.Index(realUrl, "/"):strings.LastIndex(realUrl, "/")]
+
+	t.Logf("the realUrl is %s,the endpoint is %s,the bucket is %s,the object is %s,", realUrl, endpoint, bucket, object)
+
+}

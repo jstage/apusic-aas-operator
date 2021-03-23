@@ -35,9 +35,12 @@ type CacheStatus struct {
 type ApusicAsSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	Name         string       `json:"name,omitempty"`
-	Replicas     int32        `json:"replicas,omitempty"`
-	SessionCache SessionCache `json:"sessionCache,omitempty"`
+	Name             string       `json:"name,omitempty"`
+	Replicas         int32        `json:"replicas,omitempty"`
+	SessionCache     SessionCache `json:"sessionCache,omitempty"`
+	LicenseConfigRef string       `json:"licenseConfigRef,omitempty"`
+	OssSecertRef     string       `json:"ossSecertRef,omitempty"`
+	OssUrl           string       `json:"ossUrl,omitempty"`
 }
 
 // ApusicAsStatus defines the observed state of ApusicAs

@@ -96,31 +96,46 @@ func (r *ApusicControlPlaneReconciler) Reconcile(req ctrl.Request) (ctrl.Result,
 			log.Error(err, "Failed to create new consul HeadlessService", "HeadlessService.Namespace", consulHeadless.Namespace, "HeadlessService.Name", consulHeadless.Name)
 			return ctrl.Result{}, err
 		}
-		ctrl.SetControllerReference(apusicControlPlane, consulHeadless, r.Scheme)
+		err = ctrl.SetControllerReference(apusicControlPlane, consulHeadless, r.Scheme)
+		if err != nil {
+			log.Error(err, "Failed to SetControllerReference of consulHeadless")
+		}
 		err = r.Create(ctx, consulStateful)
 		if err != nil && !errors.IsAlreadyExists(err) {
 			log.Error(err, "Failed to create new consul StatefulSet", "StatefulSet.Namespace", consulStateful.Namespace, "StatefulSet.Name", consulStateful.Name)
 			return ctrl.Result{}, err
 		}
-		ctrl.SetControllerReference(apusicControlPlane, consulStateful, r.Scheme)
+		err = ctrl.SetControllerReference(apusicControlPlane, consulStateful, r.Scheme)
+		if err != nil {
+			log.Error(err, "Failed to SetControllerReference of consulStateful")
+		}
 		err = r.Create(ctx, uideploy)
 		if err != nil && !errors.IsAlreadyExists(err) {
 			log.Error(err, "Failed to create new consul ui deployment", "deployment.Namespace", uideploy.Namespace, "deployment.Name", uideploy.Name)
 			return ctrl.Result{}, err
 		}
-		ctrl.SetControllerReference(apusicControlPlane, uideploy, r.Scheme)
+		err = ctrl.SetControllerReference(apusicControlPlane, uideploy, r.Scheme)
+		if err != nil {
+			log.Error(err, "Failed to SetControllerReference of uideploy")
+		}
 		err = r.Create(ctx, uisvc)
 		if err != nil && !errors.IsAlreadyExists(err) {
 			log.Error(err, "Failed to create new consul ui service", "service.Namespace", uisvc.Namespace, "service.Name", uisvc.Name)
 			return ctrl.Result{}, err
 		}
-		ctrl.SetControllerReference(apusicControlPlane, uisvc, r.Scheme)
+		err = ctrl.SetControllerReference(apusicControlPlane, uisvc, r.Scheme)
+		if err != nil {
+			log.Error(err, "Failed to SetControllerReference of ui service")
+		}
 		err = r.Create(ctx, pvc)
 		if err != nil && !errors.IsAlreadyExists(err) {
 			log.Error(err, "Failed to create new consul ui pvc", "pvc.Namespace", pvc.Namespace, "pvc.Name", pvc.Name)
 			return ctrl.Result{}, err
 		}
-		ctrl.SetControllerReference(apusicControlPlane, pvc, r.Scheme)
+		err = ctrl.SetControllerReference(apusicControlPlane, pvc, r.Scheme)
+		if err != nil {
+			log.Error(err, "Failed to SetControllerReference of ui pvc")
+		}
 		return ctrl.Result{Requeue: true}, nil
 	} else if err != nil && !errors.IsAlreadyExists(err) {
 		log.Error(err, "Failed to get consul instance")

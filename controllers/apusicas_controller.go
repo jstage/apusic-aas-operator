@@ -22,10 +22,10 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	"reflect"
+	"strings"
 
 	webserverv1 "github.com/jstage/apusic-aas-operator/api/v1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -35,6 +35,8 @@ import (
 
 const (
 	defaultAasImage = "apusicas:9.0"
+
+	defaultAasAppImage = "mc-apusic:v1.0"
 
 	defaultAasImagePolicy = corev1.PullIfNotPresent
 
@@ -77,7 +79,7 @@ func (r *ApusicAsReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	found := &appsv1.Deployment{}
 	err = r.Get(ctx, types.NamespacedName{Name: apusicas.Name, Namespace: apusicas.Namespace}, found)
 	if err != nil && errors.IsNotFound(err) {
-		dep := r.deploymentForApusicAs(apusicas)
+		dep := r.deploymentForApusicAs(ctx, apusicas)
 		log.Info("Creating a new Deployment", "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
 		err := r.Create(ctx, dep)
 		if err != nil {
@@ -125,9 +127,10 @@ func (r *ApusicAsReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	return ctrl.Result{}, nil
 }
 
-func (r *ApusicAsReconciler) deploymentForApusicAs(aas *webserverv1.ApusicAs) *appsv1.Deployment {
+func (r *ApusicAsReconciler) deploymentForApusicAs(ctx context.Context, aas *webserverv1.ApusicAs) *appsv1.Deployment {
 	lb := labelsForApusicAs(aas.Name)
 	replicas := aas.Spec.Replicas
+	envars := r.envars(ctx, aas)
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      aas.Name,
@@ -143,6 +146,14 @@ func (r *ApusicAsReconciler) deploymentForApusicAs(aas *webserverv1.ApusicAs) *a
 					Labels: lb,
 				},
 				Spec: corev1.PodSpec{
+					InitContainers: []corev1.Container{
+						{
+							Name:            "apusicas-app",
+							Image:           defaultAasAppImage,
+							ImagePullPolicy: defaultAasImagePolicy,
+							Env:             envars,
+						},
+					},
 					Containers: []corev1.Container{{
 						Name:            "apusicas",
 						Image:           defaultAasImage,
@@ -151,7 +162,32 @@ func (r *ApusicAsReconciler) deploymentForApusicAs(aas *webserverv1.ApusicAs) *a
 							ContainerPort: defaultAasPort,
 							Name:          "apusicas",
 						}},
+						VolumeMounts: []corev1.VolumeMount{
+							{
+								Name:      "license",
+								MountPath: "/opt/AAS/license.xml",
+								SubPath:   "license.xml",
+							},
+						},
 					}},
+					Volumes: []corev1.Volume{
+						{
+							Name: "license",
+							VolumeSource: corev1.VolumeSource{
+								ConfigMap: &corev1.ConfigMapVolumeSource{
+									LocalObjectReference: corev1.LocalObjectReference{
+										Name: aas.Spec.LicenseConfigRef,
+									},
+									Items: []corev1.KeyToPath{
+										{
+											Key:  "license",
+											Path: "license.xml",
+										},
+									},
+								},
+							},
+						},
+					},
 				},
 			},
 		},
@@ -175,9 +211,55 @@ func labelsForApusicAs(name string) map[string]string {
 	return map[string]string{"app": "apusicas", "apusicas_cr": name}
 }
 
+func (r *ApusicAsReconciler) envars(ctx context.Context, aas *webserverv1.ApusicAs) []corev1.EnvVar {
+	ref := aas.Spec.OssSecertRef
+	secert := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      ref,
+			Namespace: aas.Namespace,
+		},
+	}
+	r.Get(ctx, types.NamespacedName{Name: aas.Name, Namespace: aas.Namespace}, secert)
+	url := aas.Spec.OssUrl
+	endpoint, bucket, object := geturl(url)
+	envars := make([]corev1.EnvVar, 0)
+	envars = append(envars, corev1.EnvVar{
+		Name:  "MINIO_ENDPOINT",
+		Value: endpoint,
+	}, corev1.EnvVar{
+		Name:  "MINIO_KEY",
+		Value: string(secert.Data["accessKeyID"]),
+	}, corev1.EnvVar{
+		Name:  "MINIO_SECERT",
+		Value: string(secert.Data["accessKeyID"]),
+	}, corev1.EnvVar{
+		Name:  "MINIO_BUCKET",
+		Value: bucket,
+	}, corev1.EnvVar{
+		Name:  "MINIO_OBJECT",
+		Value: object,
+	}, corev1.EnvVar{
+		Name:  "TARGET_DIR",
+		Value: "/webapps",
+	})
+	return envars
+}
+
+//str = "http://127.0.0.1:9000/yukiso/test/aas.war"
+func geturl(str string) (endpoint, bucket, object string) {
+	last := strings.LastIndex(str, "/")
+	first := strings.Index(str, "://")
+	object = str[last+1:]
+	realUrl := str[first+3:]
+	endpoint = realUrl[0:strings.Index(realUrl, "/")]
+	bucket = realUrl[strings.Index(realUrl, "/"):strings.LastIndex(realUrl, "/")]
+	return
+}
 func (r *ApusicAsReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&webserverv1.ApusicAs{}).
 		Owns(&appsv1.Deployment{}).
+		Owns(&corev1.Secret{}).
+		Owns(&corev1.ConfigMap{}).
 		Complete(r)
 }
