@@ -1,4 +1,4 @@
-module gitee.com/jcown/apusic-aas-operator
+module github.com/jstage/apusic-aas-operator
 
 go 1.13
 
