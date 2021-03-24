@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -251,7 +252,7 @@ func geturl(str string) (endpoint, bucket, object string) {
 	first := strings.Index(str, "://")
 	object = str[last+1:]
 	realUrl := str[first+3:]
-	endpoint = realUrl[0:strings.Index(realUrl, "/")]
+	endpoint = fmt.Sprintf("%s%s", str[0:first+3], realUrl[0:strings.Index(realUrl, "/")])
 	bucket = realUrl[strings.Index(realUrl, "/"):strings.LastIndex(realUrl, "/")]
 	return
 }
