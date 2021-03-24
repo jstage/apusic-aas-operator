@@ -253,7 +253,7 @@ func geturl(str string) (endpoint, bucket, object string) {
 	object = str[last+1:]
 	realUrl := str[first+3:]
 	endpoint = fmt.Sprintf("%s%s", str[0:first+3], realUrl[0:strings.Index(realUrl, "/")])
-	bucket = realUrl[strings.Index(realUrl, "/"):strings.LastIndex(realUrl, "/")]
+	bucket = realUrl[strings.Index(realUrl, "/")+1 : strings.LastIndex(realUrl, "/")]
 	return
 }
 func (r *ApusicAsReconciler) SetupWithManager(mgr ctrl.Manager) error {

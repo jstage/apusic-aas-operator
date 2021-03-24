@@ -94,7 +94,7 @@ func TestString(t *testing.T) {
 
 	endpoint := fmt.Sprintf("%s%s", str[0:first+3], realUrl[0:strings.Index(realUrl, "/")])
 
-	bucket := realUrl[strings.Index(realUrl, "/"):strings.LastIndex(realUrl, "/")]
+	bucket := realUrl[strings.Index(realUrl, "/")+1 : strings.LastIndex(realUrl, "/")]
 
 	t.Logf("the realUrl is %s,the endpoint is %s,the bucket is %s,the object is %s,", realUrl, endpoint, bucket, object)
 
