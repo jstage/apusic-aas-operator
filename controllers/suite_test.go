@@ -17,6 +17,7 @@ limitations under the License.
 package controllers
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -85,13 +86,13 @@ var _ = AfterSuite(func() {
 })
 
 func TestString(t *testing.T) {
-	str := "http://127.0.0.1:9000/yukiso/test/aas.war"
+	str := "http://127.0.0.1:9000/yukiso/aas.war"
 	last := strings.LastIndex(str, "/")
 	first := strings.Index(str, "://")
 	object := str[last+1:]
 	realUrl := str[first+3:]
 
-	endpoint := realUrl[0:strings.Index(realUrl, "/")]
+	endpoint := fmt.Sprintf("%s%s", str[0:first+3], realUrl[0:strings.Index(realUrl, "/")])
 
 	bucket := realUrl[strings.Index(realUrl, "/"):strings.LastIndex(realUrl, "/")]
 
