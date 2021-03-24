@@ -153,6 +153,12 @@ func (r *ApusicAsReconciler) deploymentForApusicAs(ctx context.Context, aas *web
 							Image:           defaultAasAppImage,
 							ImagePullPolicy: defaultAasImagePolicy,
 							Env:             envars,
+							VolumeMounts: []corev1.VolumeMount{
+								{
+									Name:      "webapps",
+									MountPath: "/webapps",
+								},
+							},
 						},
 					},
 					Containers: []corev1.Container{{
@@ -164,6 +170,10 @@ func (r *ApusicAsReconciler) deploymentForApusicAs(ctx context.Context, aas *web
 							Name:          "apusicas",
 						}},
 						VolumeMounts: []corev1.VolumeMount{
+							{
+								Name:      "webapps",
+								MountPath: "/webapps",
+							},
 							{
 								Name:      "license",
 								MountPath: "/opt/AAS/license.xml",
@@ -186,6 +196,12 @@ func (r *ApusicAsReconciler) deploymentForApusicAs(ctx context.Context, aas *web
 										},
 									},
 								},
+							},
+						},
+						{
+							Name: "webapps",
+							VolumeSource: corev1.VolumeSource{
+								EmptyDir: &corev1.EmptyDirVolumeSource{},
 							},
 						},
 					},
