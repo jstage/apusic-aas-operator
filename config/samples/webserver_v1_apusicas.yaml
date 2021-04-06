@@ -3,5 +3,19 @@ kind: ApusicAs
 metadata:
   name: apusicas-sample
 spec:
-  # Add fields here
-  foo: bar
+  # Specific apusicas name
+  name: apusic-sample
+  # The replicas of the apusicas
+  replicas: 3
+  # The version of the apusicas
+  version: 10
+  # The session cache config of the apusicas
+  sessionCache: redis
+  # The license of this instance
+  licenseSecertRef: apusic-license
+  # The app ready to deploy
+  appOssRef: test-app
+status:
+  replicas: 3
+  sessioncache: redis
+  appDeploy: success
