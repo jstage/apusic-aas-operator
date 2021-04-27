@@ -172,12 +172,18 @@ func (r *ApusicAsReconciler) deploymentForApusicAs(ctx context.Context, aas *web
 						VolumeMounts: []corev1.VolumeMount{
 							{
 								Name:      "webapps",
-								MountPath: "/webapps",
+								MountPath: "/webapps/app.war",
+								SubPath:   "app.war",
 							},
 							{
 								Name:      "license",
 								MountPath: "/opt/AAS/license.xml",
 								SubPath:   "license.xml",
+							},
+							{
+								Name:      "appConfig",
+								MountPath: "/webapps/default/META-INF/application.xml",
+								SubPath:   "application.xml",
 							},
 						},
 					}},
@@ -187,12 +193,28 @@ func (r *ApusicAsReconciler) deploymentForApusicAs(ctx context.Context, aas *web
 							VolumeSource: corev1.VolumeSource{
 								ConfigMap: &corev1.ConfigMapVolumeSource{
 									LocalObjectReference: corev1.LocalObjectReference{
-										Name: aas.Spec.LicenseConfigRef,
+										Name: aas.Spec.ConfigRef,
 									},
 									Items: []corev1.KeyToPath{
 										{
 											Key:  "license",
 											Path: "license.xml",
+										},
+									},
+								},
+							},
+						},
+						{
+							Name: "appConfig",
+							VolumeSource: corev1.VolumeSource{
+								ConfigMap: &corev1.ConfigMapVolumeSource{
+									LocalObjectReference: corev1.LocalObjectReference{
+										Name: aas.Spec.ConfigRef,
+									},
+									Items: []corev1.KeyToPath{
+										{
+											Key:  "appConfig",
+											Path: "application.xml",
 										},
 									},
 								},
@@ -258,6 +280,9 @@ func (r *ApusicAsReconciler) envars(ctx context.Context, aas *webserverv1.Apusic
 	}, corev1.EnvVar{
 		Name:  "TARGET_DIR",
 		Value: "/webapps",
+	}, corev1.EnvVar{
+		Name:  "TARGET_FILE",
+		Value: "app.war",
 	})
 	return envars
 }
